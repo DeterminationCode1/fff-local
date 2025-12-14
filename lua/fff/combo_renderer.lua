@@ -26,13 +26,20 @@ function M.init(ns_id) overlay_state.ns_id = ns_id end
 local function detect_combo_item(items, file_picker, combo_boost_score_multiplier)
   if not items or #items == 0 then return nil, 0 end
 
+  local combo_multiplier = tonumber(combo_boost_score_multiplier) or 100
+  if combo_multiplier <= 0 then return nil, 0 end
+
   local first_score = file_picker.get_file_score(1)
   local last_score = file_picker.get_file_score(#items)
 
-  if first_score.combo_match_boost > combo_boost_score_multiplier then
-    return 1, first_score.combo_match_boost / combo_boost_score_multiplier
-  elseif last_score.combo_match_boost > combo_boost_score_multiplier then
-    return #items, last_score.combo_match_boost / combo_boost_score_multiplier
+  local first_boost = first_score and first_score.combo_match_boost
+  if type(first_boost) == 'number' and first_boost > combo_multiplier then
+    return 1, first_boost / combo_multiplier
+  end
+
+  local last_boost = last_score and last_score.combo_match_boost
+  if type(last_boost) == 'number' and last_boost > combo_multiplier then
+    return #items, last_boost / combo_multiplier
   end
 
   return nil, 0
